@@ -1,0 +1,27 @@
+{
+  "_comment": "TRON 'zen token' interface mapping. Constants mirror bds-tron/src/test/resources/testng.conf and java-tron's CommonParameter.zenTokenId (node config knob, default '000000' = disabled). The zen token is the fee/settlement TRC10 of TRON's shielded-transfer actuator (actuator/ShieldedTransferActuator: fee is burned to the blackhole in zenTokenId; transparent_from/to_address carry value in/out of the shielded pool).",
+  "zenTokenId": 1000001,
+  "zenTokenFee": 10000000,
+  "zenTokenOwnerKey": "2925e186bb1e88988855f11ebf20ea3a6e19ed92328b0ffb576122e769d45b68",
+  "zenTokenOwnerAddress": "4173fc381d3e2afefcced94a57d49520291c38afbb",
+  "zenTokenOwnerOperations": "7fff1fc0037e0100000000000000000000000000000000000000000000000000",
+  "operations": {
+    "0": "TransferContract",
+    "1": "TransferAsset",
+    "5": "AssetIssue",
+    "16": "MultiSign",
+    "17": "CreateSmartContract",
+    "18": "TriggerSmartContract",
+    "48": "ParticipateAssetIssue"
+  },
+  "destinations": {
+    "TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy": "41f75a371476c5e6822adf2deef66ca473eecc52d2",
+    "TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt": "41e54b5010a1d1a1493000231e238ea69d895fe055"
+  },
+  "carriers": {
+    "TRC20_USDT": { "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "decimals": 6, "senders": ["417e5f4552091a69125d5dfcb7b8c2659029395bdf"] },
+    "TRC10_WIP": { "assetId": 1003657, "decimals": 6, "totalSupply": "1e18", "trxNumResources": 34000000 },
+    "TRC10_USDZ": { "assetId": 1003846, "decimals": 6, "totalSupply": "9e18", "trxNumResources": 18000000 }
+  },
+  "note": "Sender 417e5f4552091a69125d5dfcb7b8c2659029395bdf (TMVQGm1q...) is 2-of-2: owner#1 = our key, owner#2 = TY2YRt63pM7YorXV8WNpfb3qQyvyTZzzuC. Active permissions allow TransferAsset/TriggerSmartContract but threshold is 2, so a second signature is required. zenTokenOwner account holds 0 zen tokens on both mainnet and shasta (must be funded before a shielded transfer can pay the 10000000 zen fee)."
+}
