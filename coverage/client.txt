@@ -1,0 +1,25 @@
+✔ test/helpers.js (518.33508ms)
+﹣ live pass-through: ngMockE2E forwards to the running ticker (1.009463ms) # ROUTE_SKIP_LIVE=1
+﹣ live direct $http call reaches the ticker (0.193692ms) # ROUTE_SKIP_LIVE=1
+✔ ngMock $httpBackend stubs /markets.json (124.095969ms)
+✔ ngMock $httpBackend stubs /assets.json (47.21645ms)
+✔ ngMockE2E whenGET stub drives the same service (65.030688ms)
+✔ the controller populates its model from the stubbed backend (18.436989ms)
+✔ a failing backend surfaces the controller error flag (20.507832ms)
+✔ recordService asks /proof/{sha} (13.77305ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 1882.634766
+ℹ start of coverage report
+ℹ ----------------------------------------------------------
+ℹ file      | line % | branch % | funcs % | uncovered lines
+ℹ ----------------------------------------------------------
+ℹ ----------------------------------------------------------
+ℹ all files | 100.00 |   100.00 |  100.00 | 
+ℹ ----------------------------------------------------------
+ℹ end of coverage report

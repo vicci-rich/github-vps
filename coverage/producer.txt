@@ -1,0 +1,53 @@
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:43 > Start initializing block chain host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/blockstore@v1.1.0/block_store.go:48 > Start creating block store, with config: &{memorydb }  host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/blockstore@v1.1.0/block_store.go:79 > Start loading block from database host=codespaces-9a0688
+5:25AM WRN ../../../../go/pkg/mod/github.com/!d!si!sc/blockstore@v1.1.0/block_store.go:82 > Failed to load latest block hash from database, we will set current block to nil host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:109 > There are no blocks in block store, create block chain with init state host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:170 > Start Writing block: bf354034120dca570a4dc665cb7172a70e71ac213ec134e0618a1f50c3e82754, height: 1 host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:386 > Start committing statedb state to database host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:182 > Commit state 56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421 to database, current block height: 1 host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/blockstore@v1.1.0/block_store.go:118 > Start writing block bf354034120dca570a4dc665cb7172a70e71ac213ec134e0618a1f50c3e82754 to database. host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/blockstore@v1.1.0/block_store.go:341 > Update current block to bf354034120dca570a4dc665cb7172a70e71ac213ec134e0618a1f50c3e82754 host=codespaces-9a0688
+5:25AM INF ../../../../go/pkg/mod/github.com/!d!si!sc/repository@v1.1.0/repository.go:207 > Write block bf354034120dca570a4dc665cb7172a70e71ac213ec134e0618a1f50c3e82754 height 1 successfully host=codespaces-9a0688
+5:25AM INF producer.go:112 > Block 2 assemble success with 0 txs. host=codespaces-9a0688
+5:25AM ERR producer.go:46 > Get NewLatestStateRepository failed. host=codespaces-9a0688
+5:25AM INF producer.go:112 > Block 1 assemble success with 0 txs. host=codespaces-9a0688
+5:25AM ERR producer.go:141 > The block 1 verified failed with err verify failed. host=codespaces-9a0688
+5:25AM ERR producer.go:58 > The block verified failed. host=codespaces-9a0688
+5:25AM INF producer.go:112 > Block 1 assemble success with 0 txs. host=codespaces-9a0688
+5:25AM INF producer.go:144 > The block 1 verified success. host=codespaces-9a0688
+5:25AM INF producer.go:83 > Block 1 make success host=codespaces-9a0688
+5:25AM INF producer.go:112 > Block 1 assemble success with 0 txs. host=codespaces-9a0688
+5:25AM INF producer.go:144 > The block 1 verified success. host=codespaces-9a0688
+5:25AM INF producer.go:83 > Block 1 make success host=codespaces-9a0688
+--- FAIL: TestProducer_MakeBlock (0.00s)
+    producer_test.go:160: 
+        	Error Trace:	/workspaces/github-vps/workspace/producer/producer_test.go:160
+        	Error:      	Expected nil, but got: &types.Block{Header:(*types.Header)(0x275145b7bb88), Transactions:[]*types.Transaction{}, HeaderHash:types.Hash{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}}
+        	Test:       	TestProducer_MakeBlock
+    producer_test.go:161: 
+        	Error Trace:	/workspaces/github-vps/workspace/producer/producer_test.go:161
+        	Error:      	Not equal: 
+        	            	expected: *errors.errorString(&errors.errorString{s:"signature error: mock sign error"})
+        	            	actual  : <nil>(<nil>)
+        	Test:       	TestProducer_MakeBlock
+5:25AM ERR producer.go:141 > The block 0 verified failed with err mock verify failed. host=codespaces-9a0688
+5:25AM INF producer.go:144 > The block 0 verified success. host=codespaces-9a0688
+5:25AM WRN producer.go:159 > Duplicate sign host=codespaces-9a0688
+5:25AM WRN producer.go:159 > Duplicate sign host=codespaces-9a0688
+--- FAIL: Test_signBlock (0.00s)
+    producer_test.go:210: 
+        	Error Trace:	/workspaces/github-vps/workspace/producer/producer_test.go:210
+        	Error:      	Not equal: 
+        	            	expected: <nil>(<nil>)
+        	            	actual  : *errors.errorString(&errors.errorString{s:"mock sign error"})
+        	Test:       	Test_signBlock
+FAIL
+coverage: 71.2% of statements
+FAIL	github.com/DSiSc/producer	0.027s
+ok  	github.com/DSiSc/producer/common	(cached)	coverage: 88.1% of statements
+?   	github.com/DSiSc/producer/config	[no test files]
+ok  	github.com/DSiSc/producer/tools	(cached)	coverage: 93.3% of statements
+?   	github.com/DSiSc/producer/version	[no test files]
+FAIL
+upstream producer tests are incompatible with Go 1.25 (monkey patching); verified against the unmodified module too

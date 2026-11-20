@@ -1,0 +1,15 @@
+{
+  "name": "route-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AngularJS client for the route stack: ticker, records, proofs.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "angular": "1.8.3",
+    "angular-mocks": "1.8.3",
+    "jsdom": "24.1.1"
+  },
+  "license": "Apache-2.0"
+}

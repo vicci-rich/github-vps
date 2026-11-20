@@ -1,0 +1,14 @@
+route
+=====
+
+Code: Apache License 2.0 (see LICENSE).
+
+Interface schema (interface/route.xsd, interface/route.xml): dedicated to the
+public domain under CC0 1.0 Universal (see interface/LICENSE-CC0).
+
+Third-party notices relevant to the surrounding stack (not vendored here):
+- bds-tron's OpActions.java is derived from ethereumJ and carries its LGPL
+  notice; it is referenced as the opcode-trace model and must keep that notice
+  if it is ever copied into this tree.
+- The AngularJS client depends on `angular` and `angular-mocks` (MIT); their
+  licenses live in client/node_modules.

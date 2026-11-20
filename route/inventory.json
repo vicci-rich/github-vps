@@ -1,0 +1,18 @@
+{
+  "jobs": {
+    "watch": ["bds-splitter (kafka consumer, eos topic)"],
+    "store": ["postgres (internal/store.PG)"],
+    "caller": ["runner.java (web3j)", "route chaininfo (go JSON-RPC; astraia-compatible)"],
+    "identity": ["gpg (authorship)", "tron 2-of-2 (spend)", "whilelist (on-chain allowlist)"],
+    "interface": ["route.xsd (records/ops)", "ws extension (browser)"],
+    "market": ["route ticker (/markets.json, /assets.json)"],
+    "proof": ["route serve (/proof/{sha})"]
+  },
+  "constraints": [
+    {"job": "watch", "exactly": 1},
+    {"job": "store", "exactly": 1},
+    {"job": "caller", "exactly": 2},
+    {"job": "market", "exactly": 1},
+    {"job": "proof", "exactly": 1}
+  ]
+}

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:route:1"
+           xmlns:r="urn:route:1"
+           elementFormDefault="qualified"
+           version="1.0">
+
+  <xs:annotation>
+    <xs:documentation>
+      Public-domain interface between the git backend, the CRUD daemon and the
+      light-node web app. Licensed CC0 1.0 (see LICENSE-CC0).
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="Sha">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-f]{7,40}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Email">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^@\s]+@[^@\s]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Verb">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="create"/>
+      <xs:enumeration value="read"/>
+      <xs:enumeration value="update"/>
+      <xs:enumeration value="delete"/>
+      <xs:enumeration value="transfer"/>
+      <xs:enumeration value="watch"/>
+      <xs:enumeration value="submit"/>
+      <xs:enumeration value="approve"/>
+      <xs:enumeration value="deposit"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="State">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="create"/>
+      <xs:enumeration value="change"/>
+      <xs:enumeration value="transfer"/>
+      <xs:enumeration value="remove"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="FieldType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="address"/>
+      <xs:enumeration value="uint256"/>
+      <xs:enumeration value="uint64"/>
+      <xs:enumeration value="string"/>
+      <xs:enumeration value="bool"/>
+      <xs:enumeration value="bytes"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Verification">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="true"/>
+      <xs:enumeration value="false"/>
+      <xs:enumeration value="not-recomputed"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="Envelope">
+    <xs:sequence>
+      <xs:element name="sig" type="xs:string" minOccurs="0"/>
+      <xs:element name="diffstat" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="files" type="xs:nonNegativeInteger" use="required"/>
+          <xs:attribute name="insertions" type="xs:nonNegativeInteger" use="required"/>
+          <xs:attribute name="deletions" type="xs:nonNegativeInteger" use="required"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="graphDigest" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="sha" type="r:Sha" use="required"/>
+    <xs:attribute name="author" type="r:Email" use="required"/>
+    <xs:attribute name="fpr" type="xs:string" use="optional"/>
+    <xs:attribute name="tree" type="r:Sha" use="optional"/>
+    <xs:attribute name="parents" type="xs:string" use="optional"/>
+    <xs:attribute name="committedAt" type="xs:dateTime" use="required"/>
+    <xs:attribute name="verified" type="r:Verification" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Field">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="r:FieldType" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="ChainRef">
+    <xs:attribute name="chain" type="xs:string" use="required"/>
+    <xs:attribute name="block" type="xs:string" use="required"/>
+    <xs:attribute name="tx" type="xs:string" use="required"/>
+    <xs:attribute name="receiptRoot" type="xs:string" use="optional"/>
+    <xs:attribute name="txIndex" type="xs:nonNegativeInteger" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Record">
+    <xs:sequence>
+      <xs:element name="field" type="r:Field" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="envelopeRef" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="sha" type="r:Sha" use="required"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="chainRef" type="r:ChainRef" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:positiveInteger" use="required"/>
+    <xs:attribute name="entity" type="xs:string" use="required"/>
+    <xs:attribute name="state" type="r:State" use="required"/>
+    <xs:attribute name="chain" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Operation">
+    <xs:sequence>
+      <xs:element name="param" type="r:Field" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="envelopeRef" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="sha" type="r:Sha" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="verb" type="r:Verb" use="required"/>
+    <xs:attribute name="contract" type="xs:string" use="required"/>
+    <xs:attribute name="fn" type="xs:string" use="required"/>
+    <xs:attribute name="address" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="Proof">
+    <xs:sequence>
+      <xs:element name="gpg" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="fpr" type="xs:string" use="optional"/>
+          <xs:attribute name="verified" type="r:Verification" use="required"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="receipt" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="root" type="xs:string" use="optional"/>
+          <xs:attribute name="txIndex" type="xs:nonNegativeInteger" use="optional"/>
+          <xs:attribute name="headerSigData" type="xs:string" use="optional"/>
+          <xs:attribute name="verified" type="r:Verification" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="sha" type="r:Sha" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Endpoint">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="url" type="xs:anyURI" use="required"/>
+    <xs:attribute name="protocol" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:element name="envelope" type="r:Envelope"/>
+  <xs:element name="record" type="r:Record"/>
+  <xs:element name="operation" type="r:Operation"/>
+  <xs:element name="proof" type="r:Proof"/>
+  <xs:element name="endpoint" type="r:Endpoint"/>
+</xs:schema>

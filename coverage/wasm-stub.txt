@@ -1,0 +1,6 @@
+github.com/DSiSc/wasm/exec/vm.go:18:		NewWasmChainContext	100.0%
+github.com/DSiSc/wasm/exec/vm.go:27:		NewVM			100.0%
+github.com/DSiSc/wasm/exec/vm.go:32:		Create			100.0%
+github.com/DSiSc/wasm/exec/vm.go:38:		Call			100.0%
+github.com/DSiSc/wasm/wasm/module.go:13:	IsValidWasmCode		100.0%
+total:						(statements)		100.0%

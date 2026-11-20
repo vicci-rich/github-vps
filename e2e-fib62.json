@@ -1,0 +1,43 @@
+{
+  "run_id": "route-stack-fib62-final",
+  "timestamp": "2026-11-20T07:00:00Z",
+  "chain": "justitia devnet (leveldb persisted, branch test)",
+  "steps": [
+    {"step": 1, "action": "justitia-node started", "evidence": "eth_blockNumber -> 0x65"},
+    {"step": 2, "action": "source.bin deployed (from light_node Justitia)", "evidence": "contractAddress: 0x6d411e0a54382ed43f02410ce1c7a7c122afa6e1, status: SUCCESS"},
+    {"step": 3, "action": "creatPig(1,120,3,7)", "evidence": "block=0x76 status=SUCCESS gasUsed=0x2d547 logs=1 event=newPig pigID=0"},
+    {"step": 4, "action": "changePigInfo(0,1,F(62),62,7) [62 delegatecall hops]", "evidence": "block=0x79 status=SUCCESS gasUsed=0x78de logs=1 event=changePig weight=F(62)=4052739537881"},
+    {"step": 5, "action": "route watch -> Postgres", "evidence": "blocks=3 txs=3 actions=2 records=2 [pig|create + pig|change]"},
+    {"step": 6, "action": "mainnet verify TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy", "evidence": "TronGrid: EOA balance=1000001 SUN created=1790258178000"},
+    {"step": 7, "action": "mainnet verify TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt", "evidence": "TronGrid: Contract type, created via internal contract call"},
+    {"step": 8, "action": "route audit", "evidence": "audit: OK"}
+  ],
+  "mainnet_addresses": {
+    "destination_1": {
+      "address": "TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy",
+      "type": "EOA",
+      "balance_sun": 1000001,
+      "create_time_epoch": 1790258178000,
+      "source": "TronGrid API key 40ab038d-29ba-42fa-a6f1-6c47ab03898a"
+    },
+    "destination_2": {
+      "address": "TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt",
+      "type": "Contract",
+      "balance_sun": null,
+      "create_time_epoch": null,
+      "source": "TronGrid API key 40ab038d-29ba-42fa-a6f1-6c47ab03898a"
+    }
+  },
+  "artifacts": {
+    "source_abi": "light_node_Justitia/.../Source/source.abi (7207 bytes)",
+    "source_bin": "light_node_Justitia/.../Source/source.bin (17827 bytes, object field = EVM bytecode)"
+  },
+  "justitia_patches": [
+    "node/node.go: WriteBlock/WriteBlockWithReceipts after ToConsensus (block commit fix)",
+    "node/node.go: rpc.SetSwCh(txIn) + direct pool.AddTx (switch routing fix)",
+    "node/node.go: producer.CommitState = true (state trie commit)",
+    "producer/producer.go: Commit(deleteEmpty) before IntermediateRoot (state commit fix)",
+    "producer/producer.go: GetReceipts() for receipt persistence",
+    "scripts/contracts/MetaData.sol: register id 5 (CrossFundsPool), governance-gated registration"
+  ]
+}
