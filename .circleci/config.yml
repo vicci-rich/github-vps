@@ -1,0 +1,128 @@
+version: 2.1
+
+# Architecture: justitia (eth-compatible) = chain, NFT-Toolbox = collection/CID pipeline,
+# bucket (S3/BTFS) = metadata template host, remix = compiler IDE on gh-pages.
+
+references:
+  toolbox_install: &toolbox_install
+    run:
+      name: Install NFT-Toolbox
+      command: cd workspace/NFT-Toolbox && npm ci
+
+jobs:
+  build-toolbox:
+    docker: [{ image: cimg/node:18.20 }]
+    steps:
+      - checkout
+      - *toolbox_install
+      - run: { name: Lint, command: cd workspace/NFT-Toolbox && npm run lint }
+      - run: { name: Test, command: cd workspace/NFT-Toolbox && npm test }
+      - persist_to_workspace: { root: workspace/NFT-Toolbox, paths: [node_modules, src, examples] }
+
+  create-wallet:
+    docker: [{ image: cimg/node:18.20 }]
+    steps:
+      - checkout
+      - run:
+          name: Create wallet (account.json for the toolbox)
+          command: |
+            node -e '
+              const {utils} = require("ethers");
+              const w = new utils.SigningKey(process.env.NFT_WALLET_KEY, utils.getCurve());
+              console.log("address:", utils.computeAddress(w.privateKey));
+            '
+      - run:
+          name: Keystore alternative (astraia, for the console flow)
+          command: |
+            printf "%s" "$NFT_WALLET_KEY" > /tmp/key.hex
+            printf "%s" "$WALLET_PASSWORD" > /tmp/pass.txt
+            cd workspace/astraia && go build -o /tmp/astraia ./cmd && \
+              /tmp/astraia account import --datadir /tmp/astraia-home --password /tmp/pass.txt /tmp/key.hex
+      - persist_to_workspace: { root: ., paths: [account.json] }
+
+  nft-pipeline:
+    docker: [{ image: cimg/node:18.20 }]
+    steps:
+      - checkout
+      - attach_workspace: { at: . }
+      - run:
+          name: Generate collection + metadata (layers -> metadata JSON)
+          command: cd workspace/NFT-Toolbox && npx ts-node examples/generate.ts
+      - run:
+          name: Upload assets/metadata, receive CIDs (nft.storage / Pinata / Storj)
+          command: |
+            cd workspace/NFT-Toolbox
+            node -e '
+              const fs=require("fs");
+              fs.writeFileSync("examples/account.json", JSON.stringify({
+                NFT_STORAGE_KEY: process.env.NFT_STORAGE_KEY,
+                PINATA_KEY: process.env.PINATA_KEY,
+                PINATA_SECURITY: process.env.PINATA_SECURITY
+              }));
+            '
+            npx ts-node examples/upload.ts
+      - run:
+          name: Inject template from bucket into metadata, rewrite image URIs with CIDs
+          command: |
+            cd workspace/NFT-Toolbox
+            npx ts-node -e '
+              const {nftToolbox} = require("./src");
+              nftToolbox.initCollection({name:"Demo Collection",dir:"examples/Demo Collection"});
+              nftToolbox.updateMetadataWithCID();
+            ' 2>/dev/null || true
+            curl -sf "$METADATA_BUCKET_URL/nft_template.json" -o examples/nft_template.json || true
+      - run:
+          name: Draft ERC721/ERC1155 (tokenURI = baseURI + CID)
+          command: cd workspace/NFT-Toolbox && npx ts-node examples/draft.ts
+      - run:
+          name: Deploy to the chain (justitia eth-compatible endpoint or mainnet)
+          command: |
+            cd workspace/NFT-Toolbox
+            node -e '
+              const fs=require("fs");
+              fs.writeFileSync("examples/connection.json", JSON.stringify({
+                network: process.env.NFT_NETWORK || "custom",
+                provider: {url: process.env.RPC_URL || "http://127.0.0.1:47768"},
+                wallet: {privateKey: process.env.NFT_WALLET_KEY}
+              }));
+            '
+            npx ts-node examples/deploy.ts
+      - run:
+          name: Mint (tokenURI resolves to btfs://<metadataCID>/<id>)
+          command: cd workspace/NFT-Toolbox && npx ts-node examples/mint.ts
+
+  publish-remix:
+    docker: [{ image: cimg/node:18.20 }]
+    steps:
+      - checkout
+      - run:
+          name: Build remix-ide (compiler in the browser)
+          command: |
+            git clone --depth 1 --branch gh-pages https://github.com/ethereum/remix-ide.git /tmp/remix
+            mkdir -p dist && cp -r /tmp/remix/* dist/
+      - run:
+          name: Publish to gh-pages
+          command: |
+            cd dist
+            git init -q && git checkout -q -b gh-pages
+            git add -A && git -c user.email=ci@justitia -c user.name=ci commit -qm "remix ide build"
+            git push -f "https://x-access-token:$GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git" gh-pages
+
+workflows:
+  commit:
+    jobs:
+      - build-toolbox
+      - create-wallet: { requires: [build-toolbox] }
+      - nft-pipeline: { requires: [create-wallet] }
+  release:
+    jobs:
+      - build-toolbox:
+          filters: { branches: { only: [main] } }
+      - publish-remix:
+          requires: [build-toolbox]
+          filters: { branches: { only: [main] } }
+  nightly:
+    triggers:
+      - schedule: { cron: "17 20 * * *", filters: { branches: { only: [main] } } }
+    jobs:
+      - build-toolbox
