@@ -28,6 +28,7 @@ def b64topics(log):
 KNOWN = {
     "ddf252ad": "Transfer", "727200b4": "Wrapped", "e5c32bc9": "Triggered",
     "60452eb7": "Deposit", "f0537507": "ExitStarted", "8c379a00": "Approval",
+    "e048c935": "Noise", "d39c4205": "Migrated",
 }
 
 def build_doc(block_num):
