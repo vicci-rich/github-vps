@@ -10,7 +10,7 @@ const ec = new EC('secp256k1');
 const { TronWeb } = require('tronweb');
 const { getTronGridApiKey } = require('./trongrid_config');
 
-const MAINNET = 'https://api.trongrid.io';
+const MAINNET = process.env.TRON_ACTION_ENDPOINT || 'https://api.trongrid.io';
 const SHASTA = 'https://api.shasta.trongrid.io';
 const ROUTER = 'TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6';
 const USDT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
