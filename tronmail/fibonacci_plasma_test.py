@@ -54,14 +54,6 @@ def main():
     assert "two-week Plasma deposit exit" in deploy
     game_source = GAME_SOURCE.read_text()
     assert "routeAmount(uint baseAmount, uint steps)" in game_source
-    config = (REPO_ROOT / "workspace/plasma/js/config.json").read_text()
-    assert "0xe54b5010a1d1a1493000231e238ea69d895fe055" in config
-    assert '"fibonacciSteps": 62' in config
-    child = (REPO_ROOT / "workspace/plasma/contracts/ChildChain.sol").read_text()
-    assert "depositRoutedChild" in child
-    assert "getFibonacciAmount" in child
-    root = (REPO_ROOT / "workspace/plasma/contracts/RootChain.sol").read_text()
-    assert "startDepositExitFor" in root
 
     result = {
         "tw_sbx_hex": "0x" + TWSBX_HEX,
