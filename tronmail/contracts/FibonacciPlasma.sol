@@ -40,6 +40,14 @@ contract FibonacciPlasma {
         return result;
     }
 
+    function routeAmount(uint baseAmount, uint steps) public pure returns (uint) {
+        uint amount = baseAmount;
+        for (uint i = 0; i < steps; i++) {
+            amount *= 2;
+        }
+        return amount;
+    }
+
     function getRoute() public view returns (address) {
         return route;
     }
