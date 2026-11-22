@@ -5,8 +5,9 @@ from pathlib import Path
 
 
 TWSBX_HEX = "e54b5010a1d1a1493000231e238ea69d895fe055"
-JITIA_ROOT = Path("/workspaces/github-vps/workspace/plasma/contracts/RootChain.sol")
-GAME_SOURCE = Path("/workspaces/github-vps/tronmail/contracts/FibonacciPlasma.sol")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+JITIA_ROOT = REPO_ROOT / "workspace/plasma/contracts/RootChain.sol"
+GAME_SOURCE = Path(__file__).resolve().with_name("contracts") / "FibonacciPlasma.sol"
 
 
 def fibonacci(n):
@@ -50,8 +51,8 @@ def main():
 
     root = JITIA_ROOT.read_text()
     assert "_created_at + 2 weeks" in root
-    assert "lockStatistic[_account]" in Path(
-        "/workspaces/github-vps/workspace/justitia-1/compiler/contracts/JustitiaRight.sol"
+    assert "lockStatistic[_account]" in (
+        REPO_ROOT / "workspace/justitia-1/compiler/contracts/JustitiaRight.sol"
     ).read_text()
 
     result = {
