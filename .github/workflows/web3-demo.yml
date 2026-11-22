@@ -33,6 +33,7 @@ jobs:
         run: |
           npm ci
           npm test
+          npm run test:plasma-game
 
       - name: Validate Tronmail contract sources
         run: |
@@ -40,6 +41,7 @@ jobs:
           test -s tronmail/contracts/TriggerEvent.sol
           test -s tronmail/contracts/CrossFundsPool.sol
           test -s tronmail/contracts/HorseMonkey.sol
+          test -s tronmail/contracts/FibonacciPlasma.sol
           python3 -m json.tool tronmail/deployment-result.json >/dev/null
           python3 -m py_compile tronmail/deploy.py tronmail/publish_result.py tronmail/actionkv.py
 
@@ -69,6 +71,8 @@ jobs:
             tronmail/contracts/HorseMonkey.sol
             tronmail/resource_trigger.js
             tronmail/resource_trigger.test.js
+            tronmail/fibonacci_plasma_test.py
+            tronmail/contracts/FibonacciPlasma.sol
             tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error
@@ -86,6 +90,8 @@ jobs:
             tronmail/contracts/HorseMonkey.sol
             tronmail/resource_trigger.js
             tronmail/resource_trigger.test.js
+            tronmail/fibonacci_plasma_test.py
+            tronmail/contracts/FibonacciPlasma.sol
             tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error

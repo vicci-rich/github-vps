@@ -5,6 +5,7 @@
   },
   "scripts": {
     "resource-trigger": "node resource_trigger.js",
-    "test": "node resource_trigger.test.js"
+    "test": "node resource_trigger.test.js",
+    "test:plasma-game": "python3 fibonacci_plasma_test.py"
   }
 }

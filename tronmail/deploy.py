@@ -27,6 +27,22 @@ STATE, DATA = "/tmp/justitia-state", "/tmp/justitia-data"
 TYX5 = "f75a371476c5e6822adf2deef66ca473eecc52d2"   # TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy
 TWSBX = "e54b5010a1d1a1493000231e238ea69d895fe055"  # TWsbxowDR7WJamz6a2c6tJS6r9FxK2jBt
 
+def dynamic_bytes_uint_call(selector, code, salt):
+    code_hex = code[2:] if code.startswith("0x") else code
+    code_bytes = bytes.fromhex(code_hex)
+    code_len = format(len(code_bytes), "064x")
+    padded_len = (len(code_hex) + 63) // 64 * 64
+    code_hex = code_hex.ljust(padded_len, "0")
+    return "0x" + selector + format(64, "064x") + format(salt, "064x") + code_len + code_hex
+
+def address_uint_bytes_uint_call(selector, address, amount, data, block_num):
+    data_hex = data.hex()
+    padded_len = (len(data_hex) + 63) // 64 * 64
+    data_hex = data_hex.ljust(padded_len, "0")
+    return ("0x" + selector + format(128, "064x") + "0" * 24 + address
+            + format(amount, "064x") + format(128, "064x") + format(block_num, "064x")
+            + format(len(data), "064x") + data_hex)
+
 def sh(cmd):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
@@ -69,6 +85,16 @@ def compile_rootchain(validate_addr):
     out = solcx.compile_standard(std, solc_version="v0.4.25")
     return out["contracts"][base + "RootChain.sol"]["RootChain"]["evm"]["bytecode"]["object"]
 
+def compile_fibonacci():
+    import solcx
+    src = f"{HERE}/contracts/FibonacciPlasma.sol"
+    solcx.install_solc("0.5.17")
+    out = solcx.compile_files([src], output_values=["bin"], optimize=False, solc_version="v0.5.17")
+    return {
+        "FibonacciFactory": out[src + ":FibonacciFactory"]["bin"],
+        "FibonacciPlasma": out[src + ":FibonacciPlasma"]["bin"],
+    }
+
 def fresh_foundation():
     from ecdsa import SigningKey, SECP256k1
     from Crypto.Hash import keccak
@@ -102,6 +128,99 @@ def restart_node():
         except Exception:
             time.sleep(0.5)
     return False
+
+def setup_fibonacci_plasma():
+    import driver
+    from driver import deploy, call, rpc, ev, sel, w, keccak, SigningKey, SECP256k1
+
+    priv_file = "/tmp/foundation.key"
+    if not os.path.exists(priv_file):
+        raise RuntimeError("missing /tmp/foundation.key; run the staged deployment first")
+    priv = open(priv_file).read().strip()
+    os.environ["FOUNDATION_KEY"] = priv
+    driver.set_key(priv)
+
+    foundation = driver.FROM
+    jr = "0xbd770416a3345f91e4b34576cb804a576fa48eb1"
+    addresses = json.load(open("/tmp/addresses.json"))
+    rc = addresses["RootChain"]
+    cc = addresses["ChildChain"]
+
+    bins = compile_fibonacci()
+    factory, factory_hash, factory_receipt = deploy(bins["FibonacciFactory"])
+    print("== 10. Fibonacci CREATE2 plasma game")
+    print("   factory", factory, "status", factory_receipt["status"], "block", int(factory_receipt["blockNumber"], 16))
+
+    game_bin = bins["FibonacciPlasma"]
+    game_addresses = []
+    for salt in range(1, 63):
+        initcode = bytes.fromhex(game_bin[2:] if game_bin.startswith("0x") else game_bin)
+        data = dynamic_bytes_uint_call(sel("deploy(bytes,uint256)"), "0x" + initcode.hex(), salt)
+        computed = ev(factory, dynamic_bytes_uint_call(sel("computeAddress(bytes,uint256)"), "0x" + initcode.hex(), salt))
+        game = "0x" + computed[-40:]
+        tx, receipt = call(factory, data)
+        if not receipt or receipt["status"] != "0x1":
+            raise RuntimeError("CREATE2 deployment failed salt=%d tx=%s" % (salt, tx))
+        try:
+            code = rpc("eth_getCode", [game, "latest"])
+        except (KeyError, RuntimeError):
+            code = "0x"
+        if not code or code == "0x":
+            raise RuntimeError("CREATE2 address has no runtime code salt=%d address=%s" % (salt, game))
+        game_addresses.append(game)
+        print("   [%02d] CREATE2 -> %s status 0x1" % (salt, game))
+
+    print("== 11. pledge + TWsbx child credit")
+    call(jr, "0x" + sel("issueJR(address,uint256)") + "0" * 24 + TWSBX + w(62))
+    call(jr, "0x" + sel("lockCount(address,uint256)") + "0" * 24 + TWSBX + w(62))
+    reside = int(ev(jr, "0x" + sel("residePledge(address)") + "0" * 24 + TWSBX), 16)
+    print("   JR residePledge TWsbx", reside)
+
+    child_data = address_uint_bytes_uint_call(
+        sel("depositChildChain(address,uint256,bytes,uint256)"),
+        TWSBX, 62, b"plasma-fib-62", 62)
+    call(cc, child_data)
+    child_balance = int(ev(cc, "0x" + sel("balanceOf(address)") + "0" * 24 + TWSBX), 16)
+    print("   ChildChain JT TWsbx", child_balance)
+
+    print("== 12. 62 delegated Fibonacci calls")
+    for salt, game in enumerate(game_addresses, 1):
+        initialize_data = ("0x" + sel("initialize(address,uint256,uint256)")
+                           + "0" * 24 + TWSBX + w(salt) + w(salt))
+        tx, receipt = call(game, initialize_data)
+        if not receipt or receipt["status"] != "0x1":
+            raise RuntimeError("Fibonacci initialize failed salt=%d tx=%s" % (salt, tx))
+        tx, receipt = call(game, "0x" + sel("delegateFibonacci()"))
+        if not receipt or receipt["status"] != "0x1":
+            raise RuntimeError("Fibonacci delegate failed salt=%d tx=%s" % (salt, tx))
+    print("   delegate calls", len(game_addresses))
+
+    print("== 13. two-week Plasma deposit exit")
+    call(rc, "0x" + sel("deposit()"), value=62)
+    call(rc, "0x" + sel("startDepositExit(uint256,address,uint256)")
+         + w(10**9) + "0" * 64 + w(62), value=1234567890)
+    q = ev(rc, "0x" + sel("getNextExit(address)") + "0" * 64)
+    exitable_at = int(q[:64], 16)
+    utxo_pos = int(q[64:128], 16)
+    print("   exitableAt", exitable_at, "utxoPos", utxo_pos)
+
+    route = ev(game_addresses[-1], "0x" + sel("route()"))
+    delegate_calls = int(ev(game_addresses[-1], "0x" + sel("delegateCalls()")), 16)
+    result = int(ev(game_addresses[-1], "0x" + sel("result()")), 16)
+    print("   TWsbx route", "0x" + route[-40:])
+    print("   Fibonacci 62 result", result, "delegateCalls", delegate_calls)
+
+    json.dump({
+        "factory": factory,
+        "tw sbx": "0x" + TWSBX,
+        "game_addresses": game_addresses,
+        "jr_reside_pledge": reside,
+        "child_balance": child_balance,
+        "delegate_call_count": len(game_addresses),
+        "exitable_at": exitable_at,
+        "utxo_pos": utxo_pos,
+        "foundation": "0x" + foundation,
+    }, open("/tmp/plasma-fibonacci-62.json", "w"), indent=1)
 
 def main():
     import driver
@@ -198,4 +317,7 @@ def main():
     print("   addresses:", json.dumps(A))
 
 if __name__ == "__main__":
-    main()
+    if "--fibonacci-plasma" in sys.argv:
+        setup_fibonacci_plasma()
+    else:
+        main()
