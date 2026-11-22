@@ -1,5 +1,6 @@
 // Watch USDT/TRC10 balances on the two mainnet addresses.
-const HDR = { 'Content-Type': 'application/json', 'TRON-PRO-API-KEY': '40ab038d-29ba-42fa-a6f1-6c47ab03898a' };
+const { getTronGridApiKey } = require('./trongrid_config');
+const HDR = { 'Content-Type': 'application/json', 'TRON-PRO-API-KEY': getTronGridApiKey() };
 const API = 'https://api.trongrid.io';
 const USDT = '41a614f803b6fd780986a42c78ec9c7f77e6ded13c';
 const ADDRS = ['TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy', 'TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt'];

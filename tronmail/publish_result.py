@@ -21,6 +21,21 @@ TRONGRID_REFERENCES = [
 def post_json(path, payload):
     headers = {"Content-Type": "application/json"}
     api_key = os.environ.get("TRONGRID_API_KEY")
+    if not api_key:
+        directory = Path.cwd().resolve()
+        while True:
+            candidate = directory / "api.txt"
+            if candidate.exists():
+                break
+            if directory.parent == directory:
+                candidate = None
+                break
+            directory = directory.parent
+        if candidate:
+            for line in candidate.read_text().splitlines():
+                if line.startswith("TRONGRID="):
+                    api_key = line.split("=", 1)[1].strip()
+                    break
     if api_key:
         headers["TRON-PRO-API-KEY"] = api_key
     req = urllib.request.Request(

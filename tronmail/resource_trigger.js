@@ -8,12 +8,14 @@ const crypto = require('crypto');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 const { TronWeb } = require('tronweb');
+const { getTronGridApiKey } = require('./trongrid_config');
 
 const MAINNET = 'https://api.trongrid.io';
 const SHASTA = 'https://api.shasta.trongrid.io';
 const ROUTER = 'TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6';
 const USDT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 const TSAC = 'TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa';
+const TRONGRID_API_KEY = getTronGridApiKey();
 
 function word(value) {
   return BigInt(value).toString(16).padStart(64, '0');
@@ -73,7 +75,7 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'TRON-PRO-API-KEY': process.env.TRON_PRO_API_KEY || '',
+      'TRON-PRO-API-KEY': TRONGRID_API_KEY,
     },
     body: JSON.stringify({
       owner_address: ownerAddress,
@@ -117,7 +119,7 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'TRON-PRO-API-KEY': process.env.TRON_PRO_API_KEY || '',
+      'TRON-PRO-API-KEY': TRONGRID_API_KEY,
     },
     body: JSON.stringify({
       raw_data: tx.raw_data,

@@ -8,9 +8,10 @@
 // usage: node cosign.js [owner2PrivateKey]
 const { TronWeb } = require('tronweb');
 const EC = require('elliptic').ec;
+const { getTronGridApiKey } = require('./trongrid_config');
 const ec = new EC('secp256k1');
 const crypto = require('crypto');
-const HDR = { 'Content-Type': 'application/json', 'TRON-PRO-API-KEY': '40ab038d-29ba-42fa-a6f1-6c47ab03898a' };
+const HDR = { 'Content-Type': 'application/json', 'TRON-PRO-API-KEY': getTronGridApiKey() };
 const API = 'https://api.trongrid.io';
 // owner #1 of the 2-of-2 that holds the assets (417e5f4552091a69125d5dfcb7b8c2659029395bdf)
 const OUR_KEY = process.env.OUR_KEY || '0x0000000000000000000000000000000000000000000000000000000000000001';
