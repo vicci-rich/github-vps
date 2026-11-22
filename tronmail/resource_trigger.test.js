@@ -12,4 +12,15 @@ assert(payload.includes(addressWord(USDT).replace(/^0+/, '')));
 assert(payload.includes(addressWord(TSAC).replace(/^0+/, '')));
 assert(payload.endsWith('1380acf'));
 
+const route5k = encodeBatch(
+  [USDT],
+  [TSAC],
+  [5000000000n],
+  'TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt'
+);
+assert(route5k.startsWith('1129361d'));
+assert(route5k.includes(addressWord('TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt').replace(/^0+/, '')));
+assert(route5k.includes(addressWord(USDT).replace(/^0+/, '')));
+assert(route5k.endsWith('12a05f200'));
+
 console.log('resource trigger payload encoding: passed');
