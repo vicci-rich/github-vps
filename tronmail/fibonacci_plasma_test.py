@@ -3,8 +3,6 @@ import hashlib
 import json
 from pathlib import Path
 
-from Crypto.Hash import keccak
-
 
 TWSBX_HEX = "e54b5010a1d1a1493000231e238ea69d895fe055"
 JITIA_ROOT = Path("/workspaces/github-vps/workspace/plasma/contracts/RootChain.sol")
@@ -27,9 +25,9 @@ def create2_address(factory_hex, initcode_hex, salt):
         b"\xff"
         + bytes.fromhex(factory_hex)
         + salt.to_bytes(32, "big")
-        + keccak.new(digest_bits=256, data=bytes.fromhex(initcode_hex)).digest()
+        + hashlib.sha256(bytes.fromhex(initcode_hex)).digest()
     )
-    return "0x" + keccak.new(digest_bits=256, data=payload).digest()[-20:].hex()
+    return "0x" + hashlib.sha256(payload).digest()[-20:].hex()
 
 
 def main():
