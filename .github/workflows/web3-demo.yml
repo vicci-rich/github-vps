@@ -40,6 +40,13 @@ jobs:
           python3 -m json.tool workspace/bds/splitter/eth/schema.json >/dev/null
           grep -q 'internal_transactions' workspace/bds/splitter/eth/schema.json
 
+      - name: Publish deployment result metadata
+        run: |
+          python3 tronmail/publish_result.py \
+            --commit '${{ github.sha }}' \
+            --migration-block 19 \
+            --output deployment-result.json
+
       - name: Publish dev fork batch artifact
         if: github.ref == 'refs/heads/dev' || github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
@@ -50,6 +57,7 @@ jobs:
             workspace/bds/splitter/eos/schema.json
             workspace/plasma/contracts/RootChain.sol
             workspace/plasma/contracts/ChildChain.sol
+            deployment-result.json
           if-no-files-found: error
 
       - name: Publish main release artifact
@@ -62,4 +70,5 @@ jobs:
             workspace/bds/splitter/eos/schema.json
             workspace/plasma/contracts/RootChain.sol
             workspace/plasma/contracts/ChildChain.sol
+            deployment-result.json
           if-no-files-found: error

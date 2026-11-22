@@ -1,0 +1,19 @@
+{
+  "commit": "e6c07a986b372dd15fb854d3bf410356fa4393b2",
+  "author": "223556219+Copilot@users.noreply.github.com",
+  "network": "justitia-fork",
+  "migration_block": 19,
+  "transactions": [
+    "0x7b11cb5ea056adae968b86339f9bbd0de306ef03f14a78d87738ed8c151600d6",
+    "0xee61ea5ab5772ae42a2747b7475e361e7d0e080447dbcf8c00a1cadfc29aa5ee",
+    "0xf66c53387fab718445d0c962d488a1a27d39452d8a4c63a7998879e7313bee29",
+    "0x3eee6e4bd9d5e04afac6b6093f148177e82706441c35d93eadc234ac5fdb24dd"
+  ],
+  "trongrid_references": [
+    "TAUVq7fdL6usuP6ZK4Vpnp8ZfkUu4yAVKj",
+    "TWtQzc1EdKCbaKg17ASpoxnx1kVgXxp6Mx",
+    "TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6",
+    "TNviBTAmdtQC95oGA4YcWjmnVM19FLPQ4F",
+    "TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa"
+  ]
+}
