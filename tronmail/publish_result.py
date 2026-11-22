@@ -44,13 +44,14 @@ def main():
 
     transactions = []
     if args.migration_block is not None:
-        con = sqlite3.connect(args.db)
         try:
+            con = sqlite3.connect(args.db)
             rows = con.execute(
                 """SELECT transaction_hash,status,from_addr,to_addr,value
                    FROM justitia_transaction WHERE block_num=? ORDER BY id""",
                 (args.migration_block,),
             ).fetchall()
+            con.close()
             transactions = [
                 {
                     "tx_hash": row[0],
@@ -61,8 +62,8 @@ def main():
                 }
                 for row in rows
             ]
-        finally:
-            con.close()
+        except sqlite3.Error:
+            transactions = []
 
     refs = []
     for address in TRONGRID_REFERENCES:
