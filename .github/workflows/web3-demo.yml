@@ -1,0 +1,65 @@
+name: Web3 demo promotion
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  justitia-and-plasma-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: workspace/justitia-1/go.mod
+          cache-dependency-path: workspace/justitia-1/go.sum
+
+      - name: Build Justitia backend
+        working-directory: workspace/justitia-1
+        run: go build ./...
+
+      - name: Validate Plasma bridge sources
+        run: |
+          test -s workspace/plasma/contracts/RootChain.sol
+          test -s workspace/plasma/contracts/ChildChain.sol
+          grep -q 'function startExit' workspace/plasma/contracts/RootChain.sol
+          grep -q 'function finalizeExits' workspace/plasma/contracts/RootChain.sol
+
+      - name: Check BDS event schemas
+        run: |
+          python3 -m json.tool workspace/bds/splitter/eos/schema.json >/dev/null
+          python3 -m json.tool workspace/bds/splitter/eth/schema.json >/dev/null
+          grep -q 'internal_transactions' workspace/bds/splitter/eth/schema.json
+
+      - name: Publish dev fork batch artifact
+        if: github.ref == 'refs/heads/dev' || github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web3-demo-dev-batch-${{ github.sha }}
+          path: |
+            workspace/bds/splitter/eth/schema.json
+            workspace/bds/splitter/eos/schema.json
+            workspace/plasma/contracts/RootChain.sol
+            workspace/plasma/contracts/ChildChain.sol
+          if-no-files-found: error
+
+      - name: Publish main release artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web3-demo-release-${{ github.sha }}
+          path: |
+            workspace/bds/splitter/eth/schema.json
+            workspace/bds/splitter/eos/schema.json
+            workspace/plasma/contracts/RootChain.sol
+            workspace/plasma/contracts/ChildChain.sol
+          if-no-files-found: error

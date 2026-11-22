@@ -60,7 +60,7 @@ def compile_stage1():
 
 def compile_rootchain(validate_addr):
     import solcx
-    base = PLASMA
+    base = PLASMA + "/"
     sources = {base + f: {"content": open(base + f).read()} for f in os.listdir(base) if f.endswith(".sol")}
     std = {"language": "Solidity", "sources": sources,
            "settings": {"optimizer": {"enabled": False},
@@ -82,7 +82,12 @@ def write_genesis(foundation_body):
     json.dump(g, open(GENESIS, "w"), indent=1)
 
 def restart_node():
-    sh("pkill -f '/tmp/justitia-node --log_level'")
+    import signal
+    out = subprocess.run(["ps", "-eo", "pid=,args="], capture_output=True, text=True)
+    for line in out.stdout.splitlines():
+        fields = line.strip().split(None, 1)
+        if len(fields) == 2 and "/tmp/justitia-node" in fields[1]:
+            os.kill(int(fields[0]), signal.SIGTERM)
     time.sleep(2)
     for d in (STATE, DATA):
         shutil.rmtree(d, ignore_errors=True)
@@ -186,7 +191,8 @@ def main():
         print("   JT", n, int(ev(cc, "0x" + sel("balanceOf(address)") + "0" * 24 + a), 16))
 
     print("== 9. action KV ingest + validation")
-    out = subprocess.run([sys.executable, f"{HERE}/actionkv.py", hex(list(blocks)[0])],
+    migration_block = int(next(iter(blocks)), 16)
+    out = subprocess.run([sys.executable, f"{HERE}/actionkv.py", hex(migration_block)],
                          capture_output=True, text=True)
     print("\n".join(out.stdout.strip().splitlines()[-6:]))
     print("   addresses:", json.dumps(A))
