@@ -4,6 +4,7 @@
     "tronweb": "^6.5.2"
   },
   "scripts": {
-    "resource-trigger": "node resource_trigger.js"
+    "resource-trigger": "node resource_trigger.js",
+    "test": "node resource_trigger.test.js"
   }
 }

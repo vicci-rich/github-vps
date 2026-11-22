@@ -54,7 +54,7 @@ function signRaw(rawHex, privateKey) {
   ]).toString('hex');
 }
 
-(async () => {
+async function main() {
   const fullHost = process.argv[2] === 'shasta' ? SHASTA : MAINNET;
   const amount = process.env.TRON_MIGRATION_AMOUNT
     ? BigInt(process.env.TRON_MIGRATION_AMOUNT)
@@ -132,4 +132,17 @@ function signRaw(rawHex, privateKey) {
     response: broadcast,
     ...result,
   }, null, 2));
-})();
+}
+
+module.exports = {
+  encodeBatch,
+  addressWord,
+  word,
+};
+
+if (require.main === module) {
+  main().catch(error => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
