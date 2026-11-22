@@ -15,5 +15,13 @@
     "TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6",
     "TNviBTAmdtQC95oGA4YcWjmnVM19FLPQ4F",
     "TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa"
-  ]
+  ],
+  "contract_roles": {
+    "TAUVq7fdL6usuP6ZK4Vpnp8ZfkUu4yAVKj": "token wrapper",
+    "TWtQzc1EdKCbaKg17ASpoxnx1kVgXxp6Mx": "TRC20/ERC20-style token",
+    "TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6": "hidden-selector router",
+    "TNviBTAmdtQC95oGA4YcWjmnVM19FLPQ4F": "trigger event account",
+    "TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa": "resource delegation account"
+  },
+  "resource_trigger": "tronmail/router-trigger-result.json"
 }

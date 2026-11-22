@@ -55,6 +55,8 @@ jobs:
             tronmail/contracts/TriggerEvent.sol
             tronmail/contracts/CrossFundsPool.sol
             tronmail/contracts/HorseMonkey.sol
+            tronmail/resource_trigger.js
+            tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error
 
@@ -69,5 +71,7 @@ jobs:
             tronmail/contracts/TriggerEvent.sol
             tronmail/contracts/CrossFundsPool.sol
             tronmail/contracts/HorseMonkey.sol
+            tronmail/resource_trigger.js
+            tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error

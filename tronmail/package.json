@@ -2,5 +2,8 @@
   "dependencies": {
     "elliptic": "^6.6.1",
     "tronweb": "^6.5.2"
+  },
+  "scripts": {
+    "resource-trigger": "node resource_trigger.js"
   }
 }
