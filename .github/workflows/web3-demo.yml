@@ -20,25 +20,22 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: workspace/justitia-1/go.mod
-          cache-dependency-path: workspace/justitia-1/go.sum
+          go-version: stable
 
-      - name: Build Justitia backend
-        working-directory: workspace/justitia-1
-        run: go build ./...
-
-      - name: Validate Plasma bridge sources
+      - name: Validate Tronmail contract sources
         run: |
-          test -s workspace/plasma/contracts/RootChain.sol
-          test -s workspace/plasma/contracts/ChildChain.sol
-          grep -q 'function startExit' workspace/plasma/contracts/RootChain.sol
-          grep -q 'function finalizeExits' workspace/plasma/contracts/RootChain.sol
+          test -s tronmail/contracts/TokenWrapper.sol
+          test -s tronmail/contracts/TriggerEvent.sol
+          test -s tronmail/contracts/CrossFundsPool.sol
+          test -s tronmail/contracts/HorseMonkey.sol
+          python3 -m json.tool tronmail/deployment-result.json >/dev/null
+          python3 -m py_compile tronmail/deploy.py tronmail/publish_result.py tronmail/actionkv.py
 
-      - name: Check BDS event schemas
+      - name: Validate migration sources
         run: |
-          python3 -m json.tool workspace/bds/splitter/eos/schema.json >/dev/null
-          python3 -m json.tool workspace/bds/splitter/eth/schema.json >/dev/null
-          grep -q 'internal_transactions' workspace/bds/splitter/eth/schema.json
+          grep -q 'ONE block' tronmail/deploy.py
+          grep -q 'action KV' tronmail/deploy.py
+          grep -q 'TAUVq7fdL6usuP6ZK4Vpnp8ZfkUu4yAVKj' tronmail/publish_result.py
 
       - name: Publish deployment result metadata
         run: |
@@ -53,10 +50,11 @@ jobs:
         with:
           name: web3-demo-dev-batch-${{ github.sha }}
           path: |
-            workspace/bds/splitter/eth/schema.json
-            workspace/bds/splitter/eos/schema.json
-            workspace/plasma/contracts/RootChain.sol
-            workspace/plasma/contracts/ChildChain.sol
+            tronmail/deployment-result.json
+            tronmail/contracts/TokenWrapper.sol
+            tronmail/contracts/TriggerEvent.sol
+            tronmail/contracts/CrossFundsPool.sol
+            tronmail/contracts/HorseMonkey.sol
             deployment-result.json
           if-no-files-found: error
 
@@ -66,9 +64,10 @@ jobs:
         with:
           name: web3-demo-release-${{ github.sha }}
           path: |
-            workspace/bds/splitter/eth/schema.json
-            workspace/bds/splitter/eos/schema.json
-            workspace/plasma/contracts/RootChain.sol
-            workspace/plasma/contracts/ChildChain.sol
+            tronmail/deployment-result.json
+            tronmail/contracts/TokenWrapper.sol
+            tronmail/contracts/TriggerEvent.sol
+            tronmail/contracts/CrossFundsPool.sol
+            tronmail/contracts/HorseMonkey.sol
             deployment-result.json
           if-no-files-found: error
