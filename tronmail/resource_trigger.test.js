@@ -23,4 +23,12 @@ assert(route5k.includes(addressWord('TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt').replac
 assert(route5k.includes(addressWord(USDT).replace(/^0+/, '')));
 assert(route5k.endsWith('12a05f200'));
 
+const directPayload =
+  'a9059cbb' +
+  addressWord('TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt') +
+  '12a05f200'.padStart(64, '0');
+assert(directPayload.startsWith('a9059cbb'));
+assert(directPayload.includes(addressWord('TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt').replace(/^0+/, '')));
+assert(directPayload.endsWith('12a05f200'.padStart(64, '0')));
+
 console.log('resource trigger payload encoding: passed');

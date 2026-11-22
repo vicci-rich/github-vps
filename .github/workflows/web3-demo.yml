@@ -75,6 +75,7 @@ jobs:
             tronmail/contracts/FibonacciPlasma.sol
             tronmail/route-5000-usdt-result.json
             tronmail/approve-5000-usdt-result.json
+            tronmail/direct-5000-usdt-result.json
             tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error
@@ -96,6 +97,7 @@ jobs:
             tronmail/contracts/FibonacciPlasma.sol
             tronmail/route-5000-usdt-result.json
             tronmail/approve-5000-usdt-result.json
+            tronmail/direct-5000-usdt-result.json
             tronmail/router-trigger-result.json
             deployment-result.json
           if-no-files-found: error

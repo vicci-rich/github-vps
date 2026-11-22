@@ -68,23 +68,31 @@ async function main() {
   }
 
   const tronWeb = new TronWeb({ fullHost });
-  const parameter = encodeBatch([USDT], [source], [amount], destination);
   const ownerAddress = TronWeb.address.toHex(source);
-  const contractAddress = TronWeb.address.toHex(ROUTER);
+  let contractAddress;
+  let parameter;
+  if (process.env.TRON_DIRECT_TRANSFER === '1') {
+    contractAddress = TronWeb.address.toHex(USDT);
+    parameter = 'a9059cbb' + addressWord(destination) + word(amount);
+  } else {
+    contractAddress = TronWeb.address.toHex(ROUTER);
+    parameter = encodeBatch([USDT], [source], [amount], destination);
+  }
+  const buildBody = {
+    owner_address: ownerAddress,
+    contract_address: contractAddress,
+    data: parameter,
+    call_value: 0,
+    fee_limit: 0,
+    visible: false,
+  };
   const builtResponse = await fetch(fullHost + '/wallet/triggersmartcontract', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'TRON-PRO-API-KEY': TRONGRID_API_KEY,
     },
-    body: JSON.stringify({
-      owner_address: ownerAddress,
-      contract_address: contractAddress,
-      data: parameter,
-      call_value: 0,
-      fee_limit: 0,
-      visible: false,
-    }),
+    body: JSON.stringify(buildBody),
   });
   const built = await builtResponse.json();
   if (!built.transaction) {
@@ -94,7 +102,8 @@ async function main() {
   const tx = built.transaction;
   const result = {
     network: process.argv[2] === 'shasta' ? 'shasta' : 'mainnet',
-    router: ROUTER,
+    route: process.env.TRON_DIRECT_TRANSFER === '1' ? 'direct-usdt' : 'hidden-router',
+    router: process.env.TRON_DIRECT_TRANSFER === '1' ? USDT : ROUTER,
     source,
     destination,
     amount: amount.toString(),
