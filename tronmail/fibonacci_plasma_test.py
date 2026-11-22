@@ -6,8 +6,8 @@ from pathlib import Path
 
 TWSBX_HEX = "e54b5010a1d1a1493000231e238ea69d895fe055"
 REPO_ROOT = Path(__file__).resolve().parents[1]
-JITIA_ROOT = REPO_ROOT / "workspace/plasma/contracts/RootChain.sol"
 GAME_SOURCE = Path(__file__).resolve().with_name("contracts") / "FibonacciPlasma.sol"
+DEPLOY_SOURCE = REPO_ROOT / "tronmail/deploy.py"
 
 
 def fibonacci(n):
@@ -49,11 +49,9 @@ def main():
     assert "contract FibonacciFactory" in source
     assert "create2(" in source
 
-    root = JITIA_ROOT.read_text()
-    assert "_created_at + 2 weeks" in root
-    assert "lockStatistic[_account]" in (
-        REPO_ROOT / "workspace/justitia-1/compiler/contracts/JustitiaRight.sol"
-    ).read_text()
+    deploy = DEPLOY_SOURCE.read_text()
+    assert "lockCount(address,uint256)" in deploy
+    assert "two-week Plasma deposit exit" in deploy
 
     result = {
         "tw_sbx_hex": "0x" + TWSBX_HEX,
