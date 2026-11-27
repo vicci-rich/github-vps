@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Justitia Exchange Router</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">JUSTITIA / SHASTA</p>
+      <h1>Exchange EOA Router</h1>
+      <p id="network">Checking network...</p>
+    </header>
+
+    <section class="card warning">
+      <strong>Genesis boundary</strong>
+      <p>Genesis contracts can only be installed when starting a local Justitia chain with <code>deploy.py</code>. Shasta is a public testnet; it has fixed genesis state and cannot be changed.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1. Genesis / local deployment</h2>
+        <p>Starts the Justitia fork, creates a fresh foundation, installs the genesis contracts, and deploys the router stack.</p>
+        <code>python3 tronmail/deploy.py</code>
+        <button id="copy-genesis">Copy command</button>
+      </article>
+
+      <article class="card">
+        <h2>2. Shasta exchange route</h2>
+        <label>Source EOA
+          <input id="source" placeholder="T...">
+        </label>
+        <label>Destination EOA
+          <input id="destination" placeholder="T...">
+        </label>
+        <label>TRC20 token
+          <input id="token" value="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t">
+        </label>
+        <label>Amount (smallest unit)
+          <input id="amount" inputmode="numeric" value="5000000000">
+        </label>
+        <button id="build">Build unsigned Shasta transaction</button>
+        <pre id="route-result">No transaction built.</pre>
+      </article>
+
+      <article class="card">
+        <h2>3. Mock exchange merge</h2>
+        <label>Shasta EOA
+          <input id="mock-shasta-eoa" placeholder="Shasta T... or 41...">
+        </label>
+        <label>Tron mainnet EOAs
+          <textarea id="mock-mainnet-eoas" rows="3" placeholder="TYX5...&#10;TWsbx..."></textarea>
+        </label>
+        <label>Amount (smallest unit)
+          <input id="mock-amount" inputmode="numeric" value="5000000000">
+        </label>
+        <button id="inject-log">Inject mock log</button>
+        <button id="merge-eoas">Merge after approval</button>
+        <button id="publish-trongrid">Push to api.trongrid.io</button>
+        <pre id="merge-result">No mock merge created.</pre>
+      </article>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
