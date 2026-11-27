@@ -1,0 +1,58 @@
+{
+  "_comment": "Role mapping for the migration flow. No new contracts: each role is an existing justitia/plasma contract. Addresses are the justitia fork genesis CREATE addresses (zero-coinbase nonces 0..4).",
+  "chain": { "node": "justitia", "branch": "dev", "genesis": "~/.justitia/genesis.json" },
+  "roles": {
+    "token": {
+      "role": "token (erc/trc20)",
+      "source": "workspace/plasma/contracts/ERC20.sol",
+      "symbol": "JT", "decimals": 6,
+      "address": "deployed"
+    },
+    "token_wrapper": {
+      "role": "token wrapper",
+      "source": "workspace/justitia-1/scripts/contracts/JustitiaRight.sol",
+      "why": "JRBase = ERC20 + Lockable: wraps the token with pledge/lock (lockCount/unlockCount/residePledge) - the wrapper that also carries the resource lock",
+      "address": "0xbd770416a3345f91e4b34576cb804a576fa48eb1",
+      "genesis_nonce": 0
+    },
+    "router": {
+      "role": "router (proxy router, hidden dispatch)",
+      "source": "workspace/justitia-1/scripts/contracts/CrossFundsPool.sol",
+      "hidden_selector": "0x1129361d",
+      "hidden_signature": "batchTransferFrom(address[],address[],uint256[],address)",
+      "address": "0x47c5e40890bce4a473a49d7501808b9633f29782",
+      "genesis_nonce": 4,
+      "note": "the cross precompile (RpcContractAddr 0x...11101) hardcodes this address - it is CREATE-nonce 4 of the zero-coinbase genesis sequence"
+    },
+    "trigger_event": {
+      "role": "trigger event contract",
+      "source": "workspace/justitia-1/scripts/contracts/Voting.sol",
+      "events": ["IssueVoteEvent", "ApplyToCandidateEvent", "MainNetOnlineEvent"],
+      "address": "0x5a443704dd4b594b382c22a083e2bd3090a6fef3",
+      "genesis_nonce": 1
+    },
+    "resources_delegation": {
+      "role": "resources delegation",
+      "source": "workspace/justitia-1/scripts/contracts/WhileList.sol",
+      "why": "permission/proposal delegation: issueWhileListProposal / issueContractProposal / issueChangeWhiteListProposal gate every registry and resource decision",
+      "address": "0x47e9fbef8c83a1714f1951f142132e6e90f5fa5d",
+      "genesis_nonce": 2
+    },
+    "registry": {
+      "role": "contract registry (CRUD)",
+      "source": "workspace/justitia-1/scripts/contracts/MetaData.sol",
+      "address": "0x8be503bcded90ed42eff31f56199399b2b0154ca",
+      "genesis_nonce": 3
+    },
+    "plasma_root": { "role": "plasma root chain (deposit/exit queue, +2 weeks)", "source": "workspace/plasma/contracts/RootChain.sol" },
+    "plasma_child": { "role": "plasma child chain (UTXO, JT mint 2x, depositChildChain)", "source": "workspace/plasma/contracts/ChildChain.sol" }
+  },
+  "mainnet_reference_roles": {
+    "_comment": "pattern reference only - not deployed targets",
+    "token_wrapper": "TAUVq7fdL6usuP6ZK4Vpnp8ZfkUu4yAVKj",
+    "token": "TWtQzc1EdKCbaKg17ASpoxnx1kVgXxp6Mx",
+    "router": "TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6",
+    "trigger_event": "TNviBTAmdtQC95oGA4YcWjmnVM19FLPQ4F",
+    "resources_delegation": "TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa"
+  }
+}
