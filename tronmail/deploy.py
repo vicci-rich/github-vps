@@ -228,7 +228,9 @@ def main():
                          keccak, SigningKey, SECP256k1)
     print("== 0. fresh HORSE foundation")
     priv, body = fresh_foundation()
-    open("/tmp/foundation.key", "w").write(priv)
+    # keep the foundation key outside /tmp (tmp gets wiped): ~/.justitia/foundation.key
+    os.makedirs(os.path.expanduser("~/.justitia"), exist_ok=True)
+    open(os.path.expanduser("~/.justitia/foundation.key"), "w").write(priv)
     os.environ["FOUNDATION_KEY"] = priv
     driver.set_key(priv)
     print("   address 0x" + body)

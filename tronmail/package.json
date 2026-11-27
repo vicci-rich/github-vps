@@ -6,6 +6,9 @@
   "scripts": {
     "resource-trigger": "node resource_trigger.js",
     "test": "node resource_trigger.test.js",
-    "test:plasma-game": "python3 fibonacci_plasma_test.py"
+    "test:plasma-game": "python3 fibonacci_plasma_test.py",
+    "web3": "node web3-app/server.js",
+    "deploy:genesis": "python3 deploy.py",
+    "test:mock-publish": "node -e \"fetch('http://127.0.0.1:4173/api/status').then(r=>r.json()).then(console.log)\""
   }
 }
