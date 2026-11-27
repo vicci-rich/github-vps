@@ -22,8 +22,11 @@ PLASMA = f"{WS}/plasma/contracts"
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOME = os.path.expanduser("~")
 GENESIS = f"{HOME}/.justitia/genesis.json"
-NODE_BIN = "/tmp/justitia-node"
-STATE, DATA = "/tmp/justitia-state", "/tmp/justitia-data"
+NODE_GENESIS = f"{WS}/justitia-1/config/genesis.json"   # the node reads its genesis from its cwd
+NODE_BIN = f"{HOME}/.justitia/bin/justitia-node"
+STATE, DATA = f"{HOME}/.justitia/state", f"{HOME}/.justitia/data"
+# canonical fork foundation (user-supplied): TF2vciEfCzK81qggZ4AUsxUsnx4JyESaLe
+FOUNDATION_KEY = "89e721293d89eb5e496f2c0fd2ff5813d2ceec76857d655da0e82644eba7f10f"
 TYX5 = "f75a371476c5e6822adf2deef66ca473eecc52d2"   # TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy
 TWSBX = "e54b5010a1d1a1493000231e238ea69d895fe055"  # TWsbxowDR7WJamz6a2c6tJS6r9FxK2jBt
 
@@ -47,16 +50,22 @@ def sh(cmd):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
 def stage_sources():
+    """Stage the canonical sources - nothing new is written:
+       plasma/contracts        -> ERC20 token, Validate/RootChain/ChildChain
+       workspace/tronmail/contracts/HorseMonkey.sol -> GenAsset, BusyRouter (hidden
+                                     selector 0x1129361d), MainnetTrigger
+       tronmail/contracts/stack.sol -> TokenWrapper (+InnerContract), TriggerEvent
+       justitia-1/scripts/contracts -> JR / Voting / WhiteList / MetaData / CrossFundsPool
+                                        (pre-deployed in the node genesis)
+    """
     os.makedirs("/tmp/build", exist_ok=True)
     for f in os.listdir("/tmp/build"):
         os.remove("/tmp/build/" + f)
     for f in os.listdir(PLASMA):
         if f.endswith(".sol"):
             shutil.copy(f"{PLASMA}/{f}", "/tmp/build/")
-    for f in ["TokenWrapper.sol", "TriggerEvent.sol", "CrossFundsPool.sol", "HorseMonkey.sol"]:
-        src = f"{HERE}/contracts/{f}"
-        if os.path.exists(src):
-            shutil.copy(src, "/tmp/build/")
+    shutil.copy(f"{WS}/tronmail/contracts/HorseMonkey.sol", "/tmp/build/")
+    shutil.copy(f"{HERE}/contracts/stack.sol", "/tmp/build/")
 
 def compile_stage1():
     import solcx
@@ -65,12 +74,14 @@ def compile_stage1():
     bins = {}
     for k, v in out.items():
         n = k.split(":")[-1]
-        if n in ("ERC20", "TokenWrapper", "InnerContract", "TriggerEvent", "CrossFundsPool",
+        if n in ("ERC20", "TokenWrapper", "InnerContract", "TriggerEvent",
                  "GenAsset", "BusyRouter", "MainnetTrigger", "Validate", "ChildChain"):
             b = v["bin"]
-            if n == "CrossFundsPool":
-                assert b.count("63fff840d6") == 1
-                b = b.replace("63fff840d6", "631129361d")     # hidden dispatch path
+            if n == "BusyRouter":
+                # the router's migration path is hidden behind the mainnet router's
+                # selector 0x1129361d (patched in the bin, no VM escape)
+                assert b.count("63fff840d6") == 1, "hidden dispatch entry not found"
+                b = b.replace("63fff840d6", "631129361d")
             bins[n] = b
     return bins
 
@@ -96,23 +107,29 @@ def compile_fibonacci():
     }
 
 def fresh_foundation():
+    """The canonical fork foundation - the user-supplied key (TF2vciEfCzK81qggZ4AUsxUsnx4JyESaLe)."""
     from ecdsa import SigningKey, SECP256k1
     from Crypto.Hash import keccak
-    sk = SigningKey.generate(curve=SECP256k1)
+    sk = SigningKey.from_string(bytes.fromhex(FOUNDATION_KEY), curve=SECP256k1)
     body = keccak.new(digest_bits=256, data=sk.get_verifying_key().to_string()).hexdigest()[-40:]
     return sk.to_string().hex(), body
 
 def write_genesis(foundation_body):
-    g = json.load(open(f"{WS}/justitia-1/config/genesis.json"))
+    g = json.load(open(NODE_GENESIS))
+    # drop a previously written foundation account, keep the 5 system contracts
+    g["GenesisAccounts"] = [a for a in g["GenesisAccounts"]
+                             if not (a.get("contract") is None and a.get("code") is None
+                                     and a.get("balance") == 10**12)]
     g["GenesisAccounts"].append({"addr": "0x" + foundation_body, "balance": 10**12})
-    json.dump(g, open(GENESIS, "w"), indent=1)
+    for path in (GENESIS, NODE_GENESIS):
+        json.dump(g, open(path, "w"), indent=1)
 
 def restart_node():
     import signal
     out = subprocess.run(["ps", "-eo", "pid=,args="], capture_output=True, text=True)
     for line in out.stdout.splitlines():
         fields = line.strip().split(None, 1)
-        if len(fields) == 2 and "/tmp/justitia-node" in fields[1]:
+        if len(fields) == 2 and "justitia-node" in fields[1] and "ps -eo" not in fields[1]:
             os.kill(int(fields[0]), signal.SIGTERM)
     time.sleep(2)
     for d in (STATE, DATA):

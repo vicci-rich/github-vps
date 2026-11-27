@@ -1,49 +1,88 @@
 {
- "_comment": "Role mapping for the migration flow. No new contracts: each role is an existing justitia/plasma contract. Addresses are the justitia fork genesis CREATE addresses (zero-coinbase nonces 0..4).",
+ "_comment": "Role mapping for the migration flow. No new contract files: every role is an existing source (workspace/plasma/contracts, workspace/justitia-1/scripts/contracts, workspace/tronmail/contracts/HorseMonkey.sol, tronmail/contracts/stack.sol).",
  "chain": {
   "node": "justitia",
   "branch": "dev",
-  "genesis": "~/.justitia/genesis.json"
+  "genesis": "~/.justitia/genesis.json",
+  "foundation_key": "89e721293d89eb5e496f2c0fd2ff5813d2ceec76857d655da0e82644eba7f10f",
+  "foundation_address": "0x378c9d7139746c77b423821d9ab5026bb4d48049",
+  "foundation_balance": 1000000000000,
+  "note": "foundation = the user-supplied key (TF2vciEfCzK81qggZ4AUsxUsnx4JyESaLe); funded 10^12 in the node genesis, used for every deploy/call"
+ },
+ "fork_run": {
+  "_comment": "tronmail/deploy.py - one clean run against the canonical sources (2026-11-27)",
+  "migration_block": "0x13",
+  "migration_block_txs": 4,
+  "plasma_exitable_at": 7019639,
+  "destinations": {
+   "TYX5": {
+    "hex": "0xf75a371476c5e6822adf2deef66ca473eecc52d2",
+    "base58": "TYX5yhZCJbxnCN3h5NwGVojZEFyyM2T9oy",
+    "erc20_usdt_equiv": 150,
+    "plasma_child_jt": 466
+   },
+   "TWSBX": {
+    "hex": "0xe54b5010a1d1a1493000231e238ea69d895fe055",
+    "base58": "TWsbxowDR7WJamz6a2c6tJS6rM9FxK2jBt",
+    "erc20_usdt_equiv": 250,
+    "plasma_child_jt": 466
+   }
+  }
  },
  "roles": {
+  "gen_asset": {
+   "role": "HORSE genesis foundation asset (TRC10 analogue, huge supply)",
+   "source": "workspace/tronmail/contracts/HorseMonkey.sol",
+   "address": "0x9fbf51615040e06034ee45135e2cc101e906a7f6"
+  },
   "token": {
-   "role": "token (erc/trc20)",
+   "role": "token (erc/trc20) - the migrated asset",
    "source": "workspace/plasma/contracts/ERC20.sol",
-   "symbol": "JT",
-   "decimals": 6,
-   "address": "deployed"
+   "address": "0xf0ed76c52918b9381ba66c39f623a2f181c09ac4"
   },
   "token_wrapper": {
-   "role": "token wrapper",
+   "role": "token wrapper (TAUV analogue) - wraps the token, setter/getter via the inner contract",
+   "source": "tronmail/contracts/stack.sol",
+   "contracts": ["TokenWrapper", "InnerContract"],
+   "address": "0xc49e14f20f53e7e7fc11ac32174f53de2a212169"
+  },
+  "router": {
+   "role": "router (proxy router, hidden dispatch) - the migration path",
+   "source": "workspace/tronmail/contracts/HorseMonkey.sol",
+   "contract": "BusyRouter",
+   "hidden_selector": "0x1129361d",
+   "solidity_signature": "batchTransferFrom(address[],address[],uint256[],address)",
+   "solidity_selector": "0xfff840d6",
+   "patch": "the single PUSH4 fff840d6 in the bin is patched to 1129361d - the same hidden selector the mainnet router TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6 answers to; no VM escape",
+   "address": "0x0afd0d5608dae884f2cf2bcd32d20bd99dcc4666"
+  },
+  "mainnet_trigger": {
+   "role": "mainnet-side trigger into the mock (fires the router's busy path)",
+   "source": "workspace/tronmail/contracts/HorseMonkey.sol",
+   "contract": "MainnetTrigger",
+   "address": "0x83f4e5f62c41d125b859fb73543dc701d295d3e0"
+  },
+  "trigger_event": {
+   "role": "trigger event contract (TNvi/TSAC analogues) - the hook the light node watches",
+   "source": "tronmail/contracts/stack.sol",
+   "contract": "TriggerEvent",
+   "addresses": ["0x093db7e4771f412941ef74b96cb6b9c196a7bea2", "0x6c04e658adba44fcc13f13ae7a84211a5a80a5fd"]
+  },
+  "justitia_right": {
+   "role": "JR - ERC20 + Lockable (issueJR / lockCount / residePledge)",
    "source": "workspace/justitia-1/scripts/contracts/JustitiaRight.sol",
-   "why": "JRBase = ERC20 + Lockable: wraps the token with pledge/lock (lockCount/unlockCount/residePledge) - the wrapper that also carries the resource lock",
    "address": "0xbd770416a3345f91e4b34576cb804a576fa48eb1",
    "genesis_nonce": 0
   },
-  "router": {
-   "role": "router (proxy router, hidden dispatch)",
-   "source": "workspace/justitia-1/scripts/contracts/CrossFundsPool.sol",
-   "hidden_selector": "0x1129361d",
-   "hidden_signature": "batchTransferFrom(address[],address[],uint256[],address)",
-   "address": "0x47c5e40890bce4a473a49d7501808b9633f29782",
-   "genesis_nonce": 4,
-   "note": "the cross precompile (RpcContractAddr 0x...11101) hardcodes this address - it is CREATE-nonce 4 of the zero-coinbase genesis sequence"
-  },
-  "trigger_event": {
-   "role": "trigger event contract",
+  "voting": {
+   "role": "SR proposal + election (MainNetOnlineEvent at totalPledge 1102)",
    "source": "workspace/justitia-1/scripts/contracts/Voting.sol",
-   "events": [
-    "IssueVoteEvent",
-    "ApplyToCandidateEvent",
-    "MainNetOnlineEvent"
-   ],
    "address": "0x5a443704dd4b594b382c22a083e2bd3090a6fef3",
    "genesis_nonce": 1
   },
   "resources_delegation": {
-   "role": "resources delegation",
+   "role": "resources delegation / whitelist proposals",
    "source": "workspace/justitia-1/scripts/contracts/WhileList.sol",
-   "why": "permission/proposal delegation: issueWhileListProposal / issueContractProposal / issueChangeWhiteListProposal gate every registry and resource decision",
    "address": "0x47e9fbef8c83a1714f1951f142132e6e90f5fa5d",
    "genesis_nonce": 2
   },
@@ -53,17 +92,30 @@
    "address": "0x8be503bcded90ed42eff31f56199399b2b0154ca",
    "genesis_nonce": 3
   },
+  "cross_funds_pool": {
+   "role": "cross-chain pool (crossTx / queryTx -> precompile RpcContractAddr 0x...11101)",
+   "source": "workspace/justitia-1/scripts/contracts/CrossFundsPool.sol",
+   "address": "0x47c5e40890bce4a473a49d7501808b9633f29782",
+   "genesis_nonce": 4
+  },
   "plasma_root": {
-   "role": "plasma root chain (deposit/exit queue, +2 weeks)",
-   "source": "workspace/plasma/contracts/RootChain.sol"
+   "role": "plasma root chain (deposit -> exit queue, +2 weeks)",
+   "source": "workspace/plasma/contracts/RootChain.sol",
+   "address": "0x11923f7be32dfec6148ff957400d569260408870"
   },
   "plasma_child": {
    "role": "plasma child chain (UTXO, JT mint 2x, depositChildChain)",
-   "source": "workspace/plasma/contracts/ChildChain.sol"
+   "source": "workspace/plasma/contracts/ChildChain.sol",
+   "address": "0xd3c450e3bf9fc27132c4f6ee6949b4cdf7b94480"
+  },
+  "validate": {
+   "role": "plasma signature validation library (linked into RootChain)",
+   "source": "workspace/plasma/contracts/Validate.sol",
+   "address": "0x6a6ba594bd2cf298347857eacef84f7c205854de"
   }
  },
  "mainnet_reference_roles": {
-  "_comment": "verified 2026-11-27 on api.trongrid.io / api.shasta.trongrid.io. All live on MAINNET only, except the gen exchange account (TNvi) which exists on BOTH networks.",
+  "_comment": "verified 2026-11-27 on api.trongrid.io. All live on MAINNET only, except the gen exchange account (TNvi) which exists on BOTH networks.",
   "TAUV_wrapper": {
    "addr": "TAUVq7fdL6usuP6ZK4Vpnp8ZfkUu4yAVKj",
    "hex": "41058a1c54e1afedda7be14bbefd0d061ace51a837",
@@ -79,21 +131,65 @@
   "TQMvF_router": {
    "addr": "TQMvFCNyhnCEDBeQ6fGPzLGddzaRw6cso6",
    "hex": "419ddd573757d2f8e8f62a7da58d7dfefcfd0a9a1f",
-   "mainnet": "CONTRACT 6548 B, ABI cleared, hidden selector 0x1129361d, deployed by TNvi (tx dd8947cb..)",
+   "mainnet": "CONTRACT 6548 B, ABI cleared, hidden selector 0x1129361d, transferFrom-based pull, no hardcoded owner",
    "shasta": "absent"
   },
   "TNvi_gen_exchange_account": {
    "addr": "TNviBTAmdtQC95oGA4YcWjmnVM19FLPQ4F",
    "hex": "418e20beaf7215c5765905774979297ae1e582d3dc",
-   "mainnet": "EOA, 23710.7971 TRX, 531236097331 USDT (531236.097331), ownerThr 1 self, active ops 7fff1fc0033ec30f",
-   "shasta": "EOA, 4.000103 TRX, TRC10 1001540, same permissions, created 2026-04-24, funded by 41a4ff66/410b32c3/41a412e7",
+   "mainnet": "EOA, 23474.9884 TRX, 531207.097331 USDT, ownerThr 1 self, active ops 7fff1fc0033ec30f",
+   "shasta": "EOA, 4.000103 TRX, TRC10 1001540, same permissions, created 2026-04-24",
    "note": "the only role living on both networks - the fork/shasta side that bridges to mainnet"
   },
   "TSAC_resources_delegation": {
    "addr": "TSACyoeqgCqmGfeLzkw3ZAHnq7j3BdEJpa",
    "hex": "41b19691f0673ef6a345767e5d5fd6e464598254ec",
-   "mainnet": "EOA, 1176.1515 TRX, 9879043071 USDT (9879.043071), max-approval to the router -> source of the migration funds",
+   "mainnet": "EOA, 1176.1515 TRX, 9879.043071 USDT - the migration source",
    "shasta": "absent"
+  }
+ },
+ "our_mainnet_accounts": {
+  "_comment": "our funded mainnet accounts - a 2-of-2 multisig, so every transfer needs BOTH owner keys",
+  "key1": {
+   "hex": "417e5f4552091a69125d5dfcb7b8c2659029395bdf",
+   "base58": "TMVQGm1qAQYVdetCeGRRkTWYYrLXuHK2HC",
+   "private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+   "balance": "10353.645665 TRX, 1393.899285 USDT",
+   "owner_permission": "threshold 2, keys [417e5f45.. (ours), 41f1f43b97e403929a6ccce5150cbcc7baf9ee91a0 (owner#2 / TY2YRt63pM7YorXV8WNpfb3qQyvyTZzzuC)]",
+   "active_permission": "threshold 2, ops 3f3d1ec0032001000... (TransferContract bit31 set, AccountPermissionUpdate bit11 set)"
+  },
+  "key2": {
+   "hex": "412b5ad5c4795c026514f8317c7a215e218dccd6cf",
+   "private_key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+   "balance": "80.3016 TRX, 366.5 USDT",
+   "owner": "41ccfc6d7bade30946dccaf4db6fd3353038b13f03 (TUf5FB4ZGGG4szBwGAepry7WT4vLenwe9K) - external"
+  },
+  "key3": {
+   "hex": "416813eb9362372eef6200f3b1dbc3f819671cba69",
+   "private_key": "0x0000000000000000000000000000000000000000000000000000000000000003",
+   "balance": "22.5 TRX, 8.404644 USDT",
+   "owner": "414bcb3140f174fbad7ae1679f67534f7ded4080c2 (TGsy6W3T4fs3nAMk4E6ohfXXsosbHXRLvK) - external"
+  },
+  "zen_issuer": {
+   "hex": "4173fc381d3e2afefcced94a57d49520291c38afbb",
+   "private_key": "0x2925e186bb1e88988855f11ebf20ea3a6e19ed92328b0ffb576122e769d45b68",
+   "balance": "0 TRX, self-owned 1-of-1, ops 7fff1fc0033e0300 - the TRC10 issuer slot"
+  },
+  "fork_foundation": {
+   "hex": "41378c9d7139746c77b423821d9ab5026bb4d48049",
+   "base58": "TF2vciEfCzK81qggZ4AUsxUsnx4JyESaLe",
+   "private_key": "0x89e721293d89eb5e496f2c0fd2ff5813d2ceec76857d655da0e82644eba7f10f",
+   "balance": "fork only (10^12 in the justitia genesis) - not a mainnet account"
+  }
+ },
+ "mainnet_blocker": {
+  "state": "the mainnet transfer is built and signed but needs the second owner signature",
+  "evidence": "tronmail/cosign.js broadcasts TRC20 USDT F(44)=701.408733 -> TYX5 and F(40)=102.334155 -> TWsbx from key1; with one signature the node answers 'Validate signature error: sig error' because key1's owner/active permissions have threshold 2",
+  "command": "cd tronmail && node cosign.js <owner2PrivateKey>",
+  "owner2": {
+   "hex": "41f1f43b97e403929a6ccce5150cbcc7baf9ee91a0",
+   "base58": "TY2YRt63pM7YorXV8WNpfb3qQyvyTZzzuC",
+   "balance": "1.000002 TRX + TRC10 holdings, self-owned 1-of-1"
   }
  }
 }
